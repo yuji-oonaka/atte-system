@@ -1,0 +1,51 @@
+.attendance__alert--success {
+    margin: 0 auto;
+    padding: 10px 30px;
+    border-color: #badbcc;
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.attendance__alert--error {
+    padding: 10px 0;
+    border-color: #f5c2c7;
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 4rem;
+}
+
+.attendance-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+}
+
+.attendance-button {
+    width: 100%;
+    padding: 5rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 24px;
+    cursor: pointer;
+    background-color: #fff;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+
+
+.attendance-button:disabled {
+    background-color: #fff;
+    border-color: #e0e0e0;
+    cursor: not-allowed;
+}
