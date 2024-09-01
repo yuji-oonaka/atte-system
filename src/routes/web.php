@@ -1,18 +1,21 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\BreakTimeController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+Route::middleware(['auth'])->group(function () {
+    Route::get('/', [AttendanceController::class, 'index'])->name('home');
+    
+    Route::prefix('attendance')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])->name('attendance.index');
+        Route::post('/start', [AttendanceController::class, 'startWork'])->name('attendance.start');
+        Route::post('/end', [AttendanceController::class, 'endWork'])->name('attendance.end');
+        Route::get('/show', [AttendanceController::class, 'show'])->name('attendance.show');
+    });
 
-Route::get('/', function () {
-    return view('welcome');
+    Route::prefix('break')->group(function () {
+        Route::post('/start', [BreakTimeController::class, 'startBreak'])->name('break.start');
+        Route::post('/end', [BreakTimeController::class, 'endBreak'])->name('break.end');
+    });
 });
