@@ -6,7 +6,7 @@ use App\Http\Controllers\BreakTimeController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [AttendanceController::class, 'index'])->name('home');
-    
+
     Route::prefix('attendance')->group(function () {
         Route::get('/', [AttendanceController::class, 'index'])->name('attendance.index');
         Route::post('/start', [AttendanceController::class, 'startWork'])->name('attendance.start');

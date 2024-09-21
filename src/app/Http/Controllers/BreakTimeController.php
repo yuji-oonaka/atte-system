@@ -5,56 +5,52 @@ namespace App\Http\Controllers;
 use App\Models\Attendance;
 use App\Models\BreakTime;
 use Carbon\Carbon;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 class BreakTimeController extends Controller
 {
-    private const MIN_BREAK_INTERVAL = 15; // minutes
-
-    public function startBreak(): RedirectResponse
+    public function startBreak()
     {
         $user = Auth::user();
-        $attendance = $this->getTodayAttendance($user);
+        $attendance = Attendance::currentOrLastIncomplete($user->id)->first();
 
-        $lastBreak = $attendance->breakTimes()->latest()->first();
+        if ($attendance) {
+            $lastBreakEnd = $attendance->breakTimes()
+                ->whereNotNull('end_time')
+                ->latest('end_time')
+                ->value('end_time');
 
-        if ($lastBreak && $lastBreak->end_time) {
-            $timeSinceLastBreak = Carbon::now()->diffInMinutes($lastBreak->end_time);
+            if ($lastBreakEnd && Carbon::parse($lastBreakEnd)->addMinutes(60)->gt(Carbon::now())) {
+                $remainingTime = Carbon::parse($lastBreakEnd)->addMinutes(60)->diffInMinutes(Carbon::now());
+                return redirect()->route('attendance.index')->with('error', "前回の休憩から60分経過していません。あと{$remainingTime}分お待ちください。");
+            }
 
-            if ($timeSinceLastBreak < self::MIN_BREAK_INTERVAL) {
-                $remainingTime = self::MIN_BREAK_INTERVAL - $timeSinceLastBreak;
-                return redirect()->route('home')->with('error', "次の休憩まであと{$remainingTime}分お待ちください。");
+            BreakTime::create([
+                'attendance_id' => $attendance->id,
+                'start_time' => Carbon::now(),
+            ]);
+
+            return redirect()->route('attendance.index')->with('success', '休憩を開始しました。');
+        }
+
+        return redirect()->route('attendance.index');
+    }
+
+    public function endBreak()
+    {
+        $user = Auth::user();
+        $attendance = Attendance::currentOrLastIncomplete($user->id)->first();
+
+        if ($attendance) {
+            $activeBreak = $attendance->breakTimes()->whereNull('end_time')->latest()->first();
+            if ($activeBreak) {
+                $activeBreak->end_time = Carbon::now();
+                $activeBreak->save();
+
+                return redirect()->route('attendance.index')->with('success', '休憩を終了しました。');
             }
         }
 
-        BreakTime::create([
-            'attendance_id' => $attendance->id,
-            'start_time' => Carbon::now(),
-        ]);
-
-        return redirect()->route('home')->with('success', '休憩を開始しました。');
-    }
-
-    public function endBreak(): RedirectResponse
-    {
-        $user = Auth::user();
-        $attendance = $this->getTodayAttendance($user);
-
-        $activeBreak = $attendance->breakTimes()->whereNull('end_time')->latest()->first();
-
-        $activeBreak->update([
-            'end_time' => Carbon::now(),
-        ]);
-
-        return redirect()->route('home')->with('success', '休憩を終了しました。');
-    }
-
-    private function getTodayAttendance($user): Attendance
-    {
-        return Attendance::where('user_id', $user->id)
-            ->whereDate('date', Carbon::today())
-            ->whereNull('end_time')
-            ->firstOrFail();
+        return redirect()->route('attendance.index');
     }
 }
