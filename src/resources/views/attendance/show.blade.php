@@ -7,9 +7,17 @@
 @section('content')
 <div class="container">
     <div class="date-navigation">
+        @if($previousDate)
         <a href="{{ route('attendance.show', ['date' => $previousDate]) }}">&lt;</a>
+        @else
+        <span class="disabled">&lt;</span>
+        @endif
         <h2>{{ $date }}</h2>
-        <a href="{{ route('attendance.show', ['date' => $nextDate]) }}">&gt;</a>
+        @if($nextDate)
+            <a href="{{ route('attendance.show', ['date' => $nextDate]) }}">&gt;</a>
+        @else
+            <span class="disabled">&gt;</span>
+        @endif
     </div>
     <table class="contact-table">
         <thead>
@@ -25,16 +33,16 @@
             @foreach($attendances as $attendance)
             <tr>
                 <td>{{ $attendance->user->name }}</td>
-                <td>{{ $attendance->start_time }}</td>
-                <td>{{ $attendance->end_time ? $attendance->end_time : '-' }}</td>
-                <td>{{ $attendance->total_break_time }}</td>
-                <td>{{ $attendance->total_work_time }}</td>
+                <td>{{ $attendance->formatted_start_time }}</td>
+                <td>{{ $attendance->formatted_end_time }}</td>
+                <td>{{ $attendance->formatted_total_break_time }}</td>
+                <td>{{ $attendance->formatted_total_work_time }}</td>
             </tr>
             @endforeach
         </tbody>
     </table>
     <div class="pagination-container">
-        {{ $attendances->links() }}
+        {{ $attendances->appends(request()->query())->links() }}
     </div>
 </div>
 @endsection
