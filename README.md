@@ -6,6 +6,7 @@
 ## アプリケーションURL
 パス	内容	
 /	打刻ページ	
+<br>
 /register	会員登録ページ	
 /login	ログインページ	
 /attendance/show	日付別勤怠ページ	
