@@ -6,7 +6,7 @@
 人事評価のため
 
 ## アプリケーションURL
-- http://localhost  
+- 開発環境:http://localhost  
 勤怠ページに遷移するにはユーザー登録及びログインが必要です
 - phpMyAdmin:http://localhost:8080
 
