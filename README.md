@@ -1,5 +1,6 @@
 # Atte
 勤怠管理システム
+![スクリーンショット 2024-09-29 021853](https://github.com/user-attachments/assets/9e04435e-d033-4af6-8136-65ff1d443e0f)
 
 ## 作成した目的
 人事評価のため
@@ -22,5 +23,39 @@
 - MySQL:8.0.26
 
 ## テーブル設計  
-![テーブル設計](https://github.com/user-attachments/assets/67d6768d-fefb-4bc3-8d15-395904e87577)
+![テーブル設計](https://github.com/user-attachments/assets/27c8be27-646f-4b4c-bf37-be3d3d27ed54)
 
+## ER図
+![attendace drawio (2)](https://github.com/user-attachments/assets/a3e96021-43fb-43e0-b98e-7484a3de7ad7)
+
+## 環境構築  
+### Dockerビルド
+1. `git clone  git@github.com:coachtech-material/laravel-docker-template.git`
+2. DockerDesktopアプリを立ち上げる
+3. `docker-compose up -d --build`
+
+### Laravel環境構築
+1. `docker-compose exec php bash`
+2. `composer install`
+3. 「.env.example」ファイルを 「.env」ファイルに命名を変更。または、新しく.envファイルを作成
+4. .envに以下の環境変数を追加
+```
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=laravel_db
+DB_USERNAME=laravel_user
+DB_PASSWORD=laravel_pass
+```
+5. アプリケーションキーの作成
+```
+php artisan key:generate
+```
+6. マイグレーションの実行
+```
+php artisan migrate
+```
+7.シーディングの実行
+```
+php artisan db:seed
+```
