@@ -2,10 +2,10 @@
 勤怠管理システム
 ## 作成した目的
 人事評価のため
-
 ## アプリケーションURL
-/	打刻ページ  
-/register	会員登録ページ  
-/login	ログインページ  
-/attendance/show	日付別勤怠ページ  
-/attendance/user/{userId}	個別勤怠ページ  
+http://localhost 
+## 機能一覧
+-ログイン機能
+-勤怠
+-日付一覧  
+-ユーザー一覧
