@@ -12,6 +12,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/start', [AttendanceController::class, 'startWork'])->name('attendance.start');
         Route::post('/end', [AttendanceController::class, 'endWork'])->name('attendance.end');
         Route::get('/show', [AttendanceController::class, 'show'])->name('attendance.show');
+        Route::get('/attendance/user/{userId}', [AttendanceController::class, 'showUserAttendance'])->name('attendance.user');
     });
 
     Route::prefix('break')->group(function () {
