@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 class Attendance extends Model
 {
     use HasFactory;
-
+    // マスアサインメント可能なフィールドと日付として扱うフィールドを指定
     protected $fillable = ['user_id', 'date', 'start_time', 'end_time'];
     protected $dates = ['start_time', 'end_time'];
 
@@ -24,6 +24,7 @@ class Attendance extends Model
             }
         });
     }
+    // ユーザーと休憩時間のリレーション
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -33,7 +34,7 @@ class Attendance extends Model
     {
         return $this->hasMany(BreakTime::class)->orderBy('start_time');
     }
-
+    // 総勤務時間と総休憩時間を計算するアクセサ
     public function getTotalWorkTimeAttribute()
     {
         if (!$this->end_time) return 0;
@@ -52,7 +53,7 @@ class Attendance extends Model
         return 0;
         });
     }
-
+    // 総勤務時間と総休憩時間をフォーマットして返すアクセサ
     public function getFormattedTotalWorkTimeAttribute()
     {
         return $this->formatSeconds($this->total_work_time);
@@ -62,7 +63,7 @@ class Attendance extends Model
     {
         return $this->formatSeconds($this->total_break_time);
     }
-
+    // 秒数をフォーマットするヘルパーメソッド
     private function formatSeconds($seconds)
     {
         $hours = floor($seconds / 3600);
@@ -80,7 +81,7 @@ class Attendance extends Model
     {
         return $this->end_time ? $this->end_time->format('H:i:s') : '-';
     }
-
+    // 現在の勤務または最後の未完了の勤務を取得するクエリスコープ
     public function scopeCurrentOrLastIncomplete(Builder $query, $userId)
     {
         return $query->where('user_id', $userId)
@@ -90,6 +91,7 @@ class Attendance extends Model
             })
             ->latest('created_at');
     }
+
     public function setEndTimeAttribute($value)
     {
         if ($value) {
@@ -98,6 +100,7 @@ class Attendance extends Model
         $this->attributes['end_time'] = null;
     }
     }
+    // 深夜0時をまたぐ勤務を自動的に処理するメソッドです。前日の未終了の勤務を終了し、新しい日の勤務を開始します。また、アクティブな休憩がある場合はそれも同様に処理
     public static function checkAndUpdateMidnightAttendance()
     {
         $now = Carbon::now();
@@ -108,14 +111,41 @@ class Attendance extends Model
             ->get();
 
         foreach ($attendances as $attendance) {
-            $attendance->end_time = $now->copy()->startOfDay()->subSecond();
+            $midnight = $now->copy()->startOfDay();
+
+            // 勤務を終了
+            $attendance->end_time = $midnight->copy()->subSecond();
             $attendance->save();
 
-            self::create([
+            // 新しい勤務を開始
+            $newAttendance = self::create([
                 'user_id' => $attendance->user_id,
                 'date' => $now->format('Y-m-d'),
-                'start_time' => $now->copy()->startOfDay(),
+                'start_time' => $midnight,
             ]);
+
+            // アクティブな休憩があれば終了し、新しい休憩を開始
+            $activeBreak = $attendance->breakTimes()->whereNull('end_time')->first();
+            if ($activeBreak) {
+                $activeBreak->end_time = $midnight->copy()->subSecond();
+                $activeBreak->save();
+
+                BreakTime::create([
+                    'attendance_id' => $newAttendance->id,
+                    'start_time' => $midnight,
+                ]);
+            }
         }
+    }
+    // 複数の勤務記録の総勤務時間を計算するスタティックメソッド
+    public static function calculateTotalWorkTime($attendances)
+    {
+        $totalSeconds = 0;
+        foreach ($attendances as $attendance) {
+            if ($attendance->end_time && $attendance->start_time) {
+                $totalSeconds += $attendance->total_work_time;
+            }
+        }
+        return gmdate('H:i:s', $totalSeconds);
     }
 }
